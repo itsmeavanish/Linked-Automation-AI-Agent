@@ -1,0 +1,94 @@
+{
+  "name": "LinkedIn AI Engagement Hunter - Pro V2",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 9 * * *" }
+          ]
+        }
+      },
+      "id": "eef21878-d1ed-4075-a4e4-3f05922eb37a",
+      "name": "Every Morning at 9AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [ 100, 300 ]
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": "curious_coder/linkedin-profile-scraper",
+        "customBody": "={\n  \"profileUrl\": \"https://www.linkedin.com/in/YOUR_USERNAME_HERE/\"\n}",
+        "authentication": "apifyOAuth2Api"
+      },
+      "id": "user-profile-analysis",
+      "name": "Phase 1: Analyze My Profile",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [ 350, 300 ],
+      "credentials": { "apifyOAuth2Api": { "id": "qgNdsLQdDKYrHHN0" } }
+    },
+    {
+      "parameters": {
+        "operation": "Run actor and get dataset",
+        "actorId": "curious_coder/linkedin-post-search-scraper",
+        "customBody": "={\n  \"keywords\": [\"{{ $node[\"Phase 1: Analyze My Profile\"].json[\"occupation\"] }}\", \"{{ $node[\"Phase 1: Analyze My Profile\"].json[\"industry\"] }}\"],\n  \"limit\": 10,\n  \"datePosted\": \"past24Hours\"\n}",
+        "authentication": "apifyOAuth2Api"
+      },
+      "id": "relevant-post-hunter",
+      "name": "Phase 2: Hunt Relevant Posts",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [ 600, 300 ],
+      "credentials": { "apifyOAuth2Api": { "id": "qgNdsLQdDKYrHHN0" } }
+    },
+    {
+      "parameters": {
+        "documentId": "1qeBLJDsw8nylufg8ZJUEiyYslpu2UCAaia0b5Y09f9g",
+        "sheetName": "Sheet1",
+        "options": {}
+      },
+      "id": "save-to-sheet",
+      "name": "Phase 3: Save to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [ 850, 300 ],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "cJGNvHwI0sZWTWHg" } }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "loop-over-posts",
+      "name": "Loop Over Posts",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 2,
+      "position": [ 1100, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://precommercial-nubbly-theda.ngrok-free.dev/ingest",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post_url\": \"{{ $json.url }}\",\n  \"author\": \"{{ $json.author ? $json.author.name : 'Unknown' }}\",\n  \"content\": \"{{ $json.text }}\"\n}",
+        "options": {}
+      },
+      "id": "send-to-backend",
+      "name": "Phase 4: Send to Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 1350, 300 ]
+    }
+  ],
+  "connections": {
+    "Every Morning at 9AM": { "main": [[ { "node": "Phase 1: Analyze My Profile", "type": "main", "index": 0 } ]] },
+    "Phase 1: Analyze My Profile": { "main": [[ { "node": "Phase 2: Hunt Relevant Posts", "type": "main", "index": 0 } ]] },
+    "Phase 2: Hunt Relevant Posts": { "main": [[ { "node": "Phase 3: Save to Sheet", "type": "main", "index": 0 } ]] },
+    "Phase 3: Save to Sheet": { "main": [[ { "node": "Loop Over Posts", "type": "main", "index": 0 } ]] },
+    "Loop Over Posts": { "main": [[ { "node": "Phase 4: Send to Backend", "type": "main", "index": 0 } ]] },
+    "Phase 4: Send to Backend": { "main": [[ { "node": "Loop Over Posts", "type": "main", "index": 0 } ]] }
+  }
+}

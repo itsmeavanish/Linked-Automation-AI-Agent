@@ -1,0 +1,20 @@
+# API Keys and Secrets
+.env
+
+# Playwright Session Data (Contains your actual LinkedIn login)
+linkedin_session/
+
+# Local Database (Comment history)
+commenter_state.db
+
+# Python virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+main.py
+play.py

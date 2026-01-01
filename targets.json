@@ -1,0 +1,20 @@
+{
+  "targets": [
+    {
+      "industry": "Artificial Intelligence",
+      "roles": ["CTO", "AI Engineer"],
+      "keywords": ["LLM", "Production", "Scaling"],
+      "max_posts_per_day": 5
+    },
+    {
+      "industry": "FinTech",
+      "roles": ["Product Manager"],
+      "keywords": ["Payment", "Stripe", "API"],
+      "max_posts_per_day": 3
+    }
+  ],
+  "safety_settings": {
+    "require_human_review": true,
+    "forbidden_words": ["buy now", "click here", "urgent"]
+  }
+}
