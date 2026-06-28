@@ -15,6 +15,3 @@ __pycache__/
 # OS-specific files
 .DS_Store
 Thumbs.db
-
-main.py
-play.py
